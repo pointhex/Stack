@@ -13,10 +13,14 @@ class Stack
 {
     private:
         double stack_array[STACK_DEPTH];
-		static int stack_pointer;
+	int stack_pointer;
 		
     public:	
-    		
+    	Stack()
+	{
+		stack_pointer = 0;
+	}
+
         void push_stack(double *element)
         {
             assert(element);
@@ -41,7 +45,7 @@ class Stack
 
 };
 
-int Stack::stack_pointer = 0;
+Stack stack_expression;
 
 void get_word(char * source, char * word)
 {
@@ -60,8 +64,6 @@ void get_word(char * source, char * word)
         strncpy(source, source + numsimbol, LENGTH_WORD - numsimbol);
     }
 }
-
-Stack stack_expression;
 
 void operation(char * line)
 {
