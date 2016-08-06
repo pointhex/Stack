@@ -1,140 +1,148 @@
-#include <iostream>
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>
 #include <string.h>
-#include <strstream>
-#include <stdlib.h>
 
-const int LENGTH_WORD = 255;
-const int STACK_DEPTH = 100;
+static const int LENGTH_WORD = 255;
 
-class Stack
+struct Stack
 {
-    private:
-        double stack_array[STACK_DEPTH];
+    static const int STACK_DEPTH = 100;
+
+    double stack_array[STACK_DEPTH];
 	int stack_pointer;
-		
-    public:	
-    	Stack()
-	{
-		stack_pointer = 0;
-	}
 
-        void push_stack(double *element)
-        {
-            assert(element);
-			if (stack_pointer == STACK_DEPTH) {
-				std::cout << "Stack is full" << std::endl;
-			} else {
-				stack_array[stack_pointer] = *element;
-				stack_pointer++;
-			}
-        }
-
-        double pop_stack()
-        {
-			if (stack_pointer == 0) { 
-				std::cout << "Stack is empty" << std::endl;
-				return 0;
-			} else {
-				stack_pointer--;
-				return stack_array[stack_pointer];
-			}
-        }
-
+    void Stack_constructor() { stack_pointer = 0; };
+    void Stack_destructor() { stack_pointer = 0; };
+    void push(double *element);
+    double pop();
+    void dump();
 };
 
-Stack stack_expression;
-
-void get_word(char * source, char * word)
+struct Processor
 {
-    int i = 0;
-    char * pch;
-    int numsimbol;
+    Stack *p_stack;
 
-    memset(word, 0, LENGTH_WORD);
-    pch = strchr(source, ' ');
-    numsimbol = pch - source + 1;
+    void Processor_constructor() { p_stack = new Stack; p_stack->Stack_constructor(); };
+    void Processor_destructor() { p_stack->Stack_destructor(); delete p_stack; };
+    void IsOk(){ assert(p_stack); };
 
-    if (pch == NULL)
-        strncpy(word, source, LENGTH_WORD);
-    else {
-        strncpy(word, source, numsimbol - 1); // without space
-        strncpy(source, source + numsimbol, LENGTH_WORD - numsimbol);
-    }
-}
+	void Add();
+	void Sub();
+	void Mul();
+	void Div();
+	void Pow();
+	void Sin();
+	void Cos();
+};
 
-void operation(char * line)
-{
-	
-    char word[LENGTH_WORD];
-	
-    get_word(line, word);
-
-	if (!strcmp(word,"push")) {
-		double expression = strtod(line, NULL);
-		stack_expression.push_stack( &expression );
-	}
-	
-	if (!strcmp(word,"pop")) std::cout << stack_expression.pop_stack() << std::endl;
-		
-	if (!strcmp(word,"add")) {
-		double expression = stack_expression.pop_stack() + stack_expression.pop_stack();		
-		stack_expression.push_stack( &expression );
-	}
-	
-	if (!strcmp(word,"sub")) {
-		double expression = stack_expression.pop_stack() - stack_expression.pop_stack();
-		stack_expression.push_stack( &expression );
-	}
-	
-	if (!strcmp(word,"mul")) {
-		double expression = stack_expression.pop_stack() * stack_expression.pop_stack();
-		stack_expression.push_stack( &expression );
-	}
-	
-	if (!strcmp(word,"div")) {
-		double expression = stack_expression.pop_stack() / stack_expression.pop_stack();
-		stack_expression.push_stack( &expression );
-	}
-	
-	if (!strcmp(word,"pow")) {
-		double expression = pow(stack_expression.pop_stack(), stack_expression.pop_stack());
-		stack_expression.push_stack( &expression );
-	}
-	
-	if (!strcmp(word,"sin")) {
-		double expression = sin( stack_expression.pop_stack() );
-		stack_expression.push_stack( &expression );
-	}
-	
-	if (!strcmp(word,"cos")) {
-		double expression = cos( stack_expression.pop_stack() );
-		stack_expression.push_stack( &expression );
-	}
-}
-
-bool check_end(char * line)
-{
-	char word[LENGTH_WORD];
-	
-    get_word(line, word);
-
-	if (!strcmp(word,"end"))
-		return true;
-	else
-		return false;
-}
 
 int main()
 {
-    char s[LENGTH_WORD];
-    
-    while (!check_end(s)) {
-		std::cin.getline(s, LENGTH_WORD);	
-		operation(s);
-	}    
+    double element = 0;
+    char command[LENGTH_WORD] = "";
+    Processor *my_proc = new Processor();
+
+    my_proc->Processor_constructor();
+    my_proc->IsOk();
+
+    while (true) {
+        scanf("%s", command);
+        if (!strcmp(command,"push")) {
+            scanf("%lf", &element);
+            my_proc->p_stack->push(&element);
+        }
+        if (!strcmp(command,"pop")) printf("%lf\n", my_proc->p_stack->pop());
+
+        if (!strcmp(command,"add")) my_proc->Add();
+        if (!strcmp(command,"sub")) my_proc->Sub();
+        if (!strcmp(command,"mul")) my_proc->Mul();
+        if (!strcmp(command,"div")) my_proc->Div();
+        if (!strcmp(command,"pow")) my_proc->Pow();
+        if (!strcmp(command,"sin")) my_proc->Sin();
+        if (!strcmp(command,"cos")) my_proc->Cos();
+
+		if (!strcmp(command,"end")) {
+		    my_proc->p_stack->dump();
+            my_proc->Processor_destructor();
+            delete my_proc;
+            break;
+		}
+	}
     return 0;
+}
+
+
+void Stack::push(double *element)
+{
+    assert(element);
+    if (stack_pointer ==  Stack::STACK_DEPTH) {
+        printf("Stack is full.\n");
+    } else {
+        stack_array[stack_pointer] = *element;
+        stack_pointer++;
+    }
+}
+
+double Stack::pop()
+{
+    if (stack_pointer == 0) {
+        printf("Stack is empty.\n");
+        return 0;
+    } else {
+        stack_pointer--;
+        return stack_array[stack_pointer];
+    }
+}
+
+void Stack::dump()
+{
+    printf("Quantity elements: %d\n", stack_pointer );
+	printf("Stack size: %d\n", STACK_DEPTH);
+}
+
+
+void Processor::Add()
+{
+    double value = p_stack->pop() + p_stack->pop();
+    p_stack->push(&value);
+}
+
+void Processor::Sub()
+{
+    double value = p_stack->pop();
+    value = p_stack->pop() - value;
+    p_stack->push(&value);
+}
+
+void Processor::Mul()
+{
+    double value = p_stack->pop() * p_stack->pop();
+    p_stack->push(&value);
+}
+
+void Processor::Div()
+{
+    double value = p_stack->pop();
+    value = p_stack->pop() / value;
+    p_stack->push(&value);
+}
+
+void Processor::Pow()
+{
+    double value = pow(p_stack->pop(), p_stack->pop());
+    p_stack->push(&value);
+}
+
+void Processor::Sin()
+{
+    double value = sin(p_stack->pop());
+    p_stack->push(&value);
+}
+
+void Processor::Cos()
+{
+    double value = cos(p_stack->pop());
+    p_stack->push(&value);
 }
 
